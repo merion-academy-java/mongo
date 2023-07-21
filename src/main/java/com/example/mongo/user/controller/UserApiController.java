@@ -9,9 +9,14 @@ import com.example.mongo.user.repository.UserRepository;
 import com.example.mongo.user.routes.UserRoutes;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class UserApiController {
@@ -30,15 +35,17 @@ public class UserApiController {
         return UserResponse.of(user);
     }
 
-    @GetMapping(value = UserRoutes.BY_ID)
-    public UserResponse byId(@PathVariable String id) {
-        if(!ObjectId.isValid(id)) throw new ObjectIdParseException();
+    @GetMapping(value = UserRoutes.SEARCH)
+    public List<UserResponse> search(
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(defaultValue = "0") Integer page) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserDoc> users = userRepository.findAll(pageable);
 
-        UserDoc user = userRepository
-                .findById(new ObjectId(id))
-                .orElseThrow(UserNotFoundException::new);
-
-        return UserResponse.of(user);
+        return users.getContent()
+                .stream()
+                .map(UserResponse::of)
+                .collect(Collectors.toList());
     }
 
 }
