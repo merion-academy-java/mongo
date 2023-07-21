@@ -11,6 +11,7 @@ import com.example.mongo.user.routes.UserRoutes;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,6 +59,15 @@ public class UserApiController {
                 .orElseThrow(UserNotFoundException::new);
 
         return UserResponse.of(user);
+    }
+
+    @DeleteMapping(value = UserRoutes.BY_ID)
+    public String delete(@PathVariable String id) {
+        if(!ObjectId.isValid(id)) throw new ObjectIdParseException();
+
+        userRepository.deleteById(new ObjectId(id));
+
+        return HttpStatus.OK.name();
     }
 
     @GetMapping(value = UserRoutes.SEARCH)
