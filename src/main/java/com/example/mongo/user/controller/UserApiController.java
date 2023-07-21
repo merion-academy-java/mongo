@@ -33,6 +33,17 @@ public class UserApiController {
         return UserResponse.of(user);
     }
 
+    @GetMapping(value = UserRoutes.BY_ID)
+    public UserResponse byId(@PathVariable String id) {
+        if(!ObjectId.isValid(id)) throw new ObjectIdParseException();
+
+        UserDoc user = userRepository
+                .findById(new ObjectId(id))
+                .orElseThrow(UserNotFoundException::new);
+
+        return UserResponse.of(user);
+    }
+
     @GetMapping(value = UserRoutes.SEARCH)
     public List<UserResponse> search(
             @RequestParam(defaultValue = "10") Integer size,
