@@ -9,9 +9,7 @@ import com.example.mongo.user.repository.UserRepository;
 import com.example.mongo.user.routes.UserRoutes;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,9 +36,20 @@ public class UserApiController {
     @GetMapping(value = UserRoutes.SEARCH)
     public List<UserResponse> search(
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(defaultValue = "0") Integer page) {
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "") String query) {
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserDoc> users = userRepository.findAll(pageable);
+
+        ExampleMatcher ignoringExampleMatcher = ExampleMatcher.matchingAny()
+                .withMatcher("lastName", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+                .withMatcher("firstName", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase());
+
+        Example<UserDoc> example = Example.of(
+                UserDoc.builder().lastName(query).firstName(query).build(),
+                ignoringExampleMatcher);
+
+        Page<UserDoc> users = userRepository.findAll(example, pageable);
 
         return users.getContent()
                 .stream()
