@@ -1,9 +1,10 @@
 package com.example.mongo.user.controller;
 
 import com.example.mongo.base.exception.ObjectIdParseException;
-import com.example.mongo.base.exception.UserNotFoundException;
+import com.example.mongo.user.exceptions.UserNotFoundException;
 import com.example.mongo.user.doc.UserDoc;
 import com.example.mongo.user.dto.request.CreateUserRequest;
+import com.example.mongo.user.dto.request.EditUserRequest;
 import com.example.mongo.user.dto.response.UserResponse;
 import com.example.mongo.user.repository.UserRepository;
 import com.example.mongo.user.routes.UserRoutes;
@@ -13,7 +14,6 @@ import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +28,22 @@ public class UserApiController {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .build();
+        user = userRepository.save(user);
+
+        return UserResponse.of(user);
+    }
+
+    @PutMapping(value = UserRoutes.BY_ID)
+    public UserResponse edit(@PathVariable String id, @RequestBody EditUserRequest request) {
+        if(!ObjectId.isValid(id)) throw new ObjectIdParseException();
+
+        UserDoc user = userRepository
+                .findById(new ObjectId(id))
+                .orElseThrow(UserNotFoundException::new);
+
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+
         user = userRepository.save(user);
 
         return UserResponse.of(user);

@@ -1,4 +1,4 @@
-package com.example.mongo.base.exception;
+package com.example.mongo.user.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
